@@ -1,0 +1,10 @@
+
+[controller]
+controller1 ansible_host=<ip_address>
+
+[compute]
+compute1 ansible_host=<ip_address>
+
+[openstack:children]
+controller
+compute

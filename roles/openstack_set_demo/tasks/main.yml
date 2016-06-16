@@ -1,0 +1,87 @@
+---
+
+- name: Create network
+  os_network:
+    cloud: openstack
+    name: demo_net
+    state: present
+
+- name: Create subnet
+  os_subnet:
+    cloud: openstack
+    name: demo_subnet
+    allocation_pool_start: "{{ allocation_pool_start }}"
+    allocation_pool_end: "{{ allocation_pool_end }}"
+    cidr: "{{ cidr }}"
+    dns_nameservers: "{{ dns_nameservers }}"
+    enable_dhcp: True
+    network_name: demo_net
+    state: present
+
+- name: Add subnet to router interface
+  os_router:
+    cloud: openstack
+    name: router1
+    interfaces: 
+      - private_subnet
+      - demo_subnet
+    state: present
+
+- name: Create security group
+  os_security_group:
+    cloud: openstack
+    name: "{{ security_group_name }}"
+    description: "This is a demo security group"
+    state: present
+  register: sec_group_check
+
+- name: Add security group rules
+  os_security_group_rule:
+    cloud: openstack
+    security_group: "{{ security_group_name }}"
+    protocol: "{{ item.proto }}"
+    port_range_min: "{{ item.port_min }}"
+    port_range_max: "{{ item.port_max }}"
+    remote_ip_prefix: '0.0.0.0/0'
+    state: present
+  with_items:
+    - { proto: 'tcp', port_min: '22', port_max: '22' }
+    - { proto: 'tcp', port_min: '80', port_max: '80' }
+    - { proto: 'icmp', port_min: '-1', port_max: '-1' }
+  when: sec_group_check.secgroup.name is defined and sec_group_check.secgroup.name == '{{ security_group_name }}'
+
+- name: Create keypair
+  os_keypair:
+    cloud: openstack
+    state: present
+    name: ansible_test_key
+    public_key_file: "{{ ssh_keypair }}.pub"
+
+- name: Create demo instance
+  os_server:
+    cloud: openstack
+    name: "{{ instance_name }}"
+    image: "{{ instance_image }}"
+    flavor: "{{ instance_flavor }}"
+    security_groups: "{{ security_group_name }}"
+    key_name: ansible_test_key
+    timeout: 200
+    nics:
+      - net-name: demo_net
+    floating_ip_pools:
+      - "{{ floating_ip_network }}"
+    state: present
+  register: instance_create
+
+- name: Add instance to the inventory
+  add_host:
+    name: "{{ instance_name }}"
+    group: demo
+    ansible_ssh_host: "{{ instance_create.server.addresses.demo_net[1].addr }}"
+    ansible_ssh_user: "{{ instance_user }}"
+    ansible_ssh_private_key_file: "{{ ssh_keypair }}"
+  when: instance_create.changed
+
+- name: Wait for instance to boot up
+  pause:
+    seconds: 20
