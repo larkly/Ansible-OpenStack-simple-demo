@@ -23,7 +23,6 @@
     cloud: openstack
     name: "{{ router_name | default('router1') }}"
     interfaces: 
-      - private_subnet
       - demo_subnet
     state: present
 
