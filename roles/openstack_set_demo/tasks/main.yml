@@ -21,7 +21,7 @@
 - name: Add subnet to router interface
   os_router:
     cloud: openstack
-    name: router1
+    name: "{{ router_name | default('router1') }}"
     interfaces: 
       - private_subnet
       - demo_subnet

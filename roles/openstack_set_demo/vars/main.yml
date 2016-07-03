@@ -6,6 +6,11 @@ allocation_pool_end: 10.10.10.50
 cidr: 10.10.10.0/24
 dns_nameservers: 10.35.28.28
 
+### If the variable is uncommented, it will override
+### the default router name set in the playbook - router1
+### You can define your own router name.
+#router_name: <new_router_name>
+
 ### Security group vars
 security_group_name: demo_sec_group
 
