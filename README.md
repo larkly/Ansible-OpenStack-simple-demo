@@ -1,7 +1,8 @@
 Openstack demo playbook
 -----------------------
 
-The following playbook is a demo of openstack management scenario.
+The following playbook is a very simple demo of openstack management scenario.
+It has been written in order to show how to work with new Ansible OpenStack modules.
 
 The playbook perform the following steps:
 # First part - OpenStack configuration:
