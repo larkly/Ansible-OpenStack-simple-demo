@@ -83,5 +83,4 @@
   when: instance_create.changed
 
 - name: Wait for instance to boot up
-  pause:
-    seconds: 20
+  local_action: wait_for host="{{ instance_create.server.addresses.demo_net[1].addr }}" search_regex="OpenSSH" port=22 timeout=300 connect_timeout=30 delay=20
